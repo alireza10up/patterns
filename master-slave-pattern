@@ -1,0 +1,84 @@
+class Master {
+    #slaves;
+
+    constructor() {
+        this.#slaves = [];
+    }
+
+    /**
+     * @summary add slave
+     * @param slave
+     */
+    addSlave(slave) {
+        this.#slaves.push(slave);
+    }
+
+    /**
+     * @summary Distributor of tasks to slaves
+     * @param tasks
+     * @return {*[]}
+     */
+    async distributeTasks(tasks) {
+        let results = [];
+        let resultsFinal = [];
+        while (tasks.length > 0) {
+            this.#slaves.forEach((slave, index) => {
+                if (slave.youCanDoIt()) {
+                    console.log(index,tasks)
+                    const task = tasks[0];
+                    results.push(slave.handle(task));
+                    tasks.splice(index, 1);
+                }
+            });
+            resultsFinal = await Promise.all(results);
+        }
+        return resultsFinal;
+    }
+}
+
+class Slave {
+    #isWorking = false;
+
+    /**
+     * @summary say slave can do it
+     * @returns {boolean}
+     */
+    youCanDoIt() {
+        return !this.#isWorking;
+    }
+
+    /**
+     * @summary do task
+     * @param taskName
+     * @returns {Promise<string>}
+     */
+    handle(taskName) {
+        return new Promise((resolve) => {
+            this.toggleWorking();
+            setTimeout(() => {
+                this.toggleWorking();
+                resolve(`Task ${taskName} Completed!`);
+            }, 2000);
+        });
+    }
+
+    /**
+     * @summary toggle user working
+     * @return void
+     */
+    toggleWorking() {
+        this.#isWorking = !this.#isWorking;
+    }
+}
+
+const master = new Master();
+const slave1 = new Slave();
+const slave2 = new Slave();
+
+master.addSlave(slave1);
+master.addSlave(slave2);
+
+const tasks = ['Task1', 'Task2', 'Task3', 'Task4'];
+master.distributeTasks(tasks).then((results) => {
+    console.log(results);
+});
